@@ -23,6 +23,7 @@ export interface ChatStore {
   createBranch: (fromBranchId?: string, fromMessageId?: string) => void,
   syncMessagesFromChat: (branchId: string, chatMessages: any[]) => void;
   getBranchMessage: (branchId: string, messageId: string) => void;
+  switchBranch: (branchId: string) => void;
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -72,11 +73,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   getBranchMessage: (branchId: string, messageId: string) => {
-    const branches = get().branches;
-    const currentBranch = branches[branchId];
-    if (!currentBranch) { console.error("[!] Branch id not found: ", branchId); return;}
-    if (!currentBranch.messages) return;
+    const branch = get().branches[branchId];
+    const message = branch?.messages?.find(x => x.id === messageId);
+    return message;
+  },
 
-    return currentBranch.messages.find(x => x.id === messageId);
+  switchBranch: (branchId: string) => {
+    set({ activeBranchId: branchId});
   }
 }))
