@@ -5,50 +5,52 @@ import { Textarea } from "@/components/ui/textarea";
 import { GitBranch, GitBranchPlus, Send } from "lucide-react";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { UserMessage } from "@/components/chat/UserMessage";
-import { useChatStore } from "@/stores/useChatStore";
+import { MessageNode, useChatStore } from "@/stores/useChatStore";
 
 export default function AIChat() {
 
   const [prompt, setPrompt] = useState("");
 
   const { 
-    branches, createBranch, activeBranchId,
-    syncMessagesFromChat, getBranchMessage, switchBranch
+    createBranch, getFromMessage,
+    syncMessagesFromChat, switchBranch,
+    getActiveBranch
   } = useChatStore();
 
-  const currentBranch = activeBranchId ? branches[activeBranchId] : null;
-  const fromMessage = currentBranch && currentBranch.fromBranchId && currentBranch.fromMessageId ? 
-    branches[currentBranch.fromBranchId].messages?.find(x => x.id === currentBranch.fromMessageId) : null
+  const currentBranch = getActiveBranch();
+  const[fromMessage, setFromMessage] = useState<MessageNode|undefined>();
 
-  const { messages, sendMessage, status, setMessages } = useChat({
-    id: activeBranchId || undefined,
-    transport: new DefaultChatTransport({
-      api: '/api/chat'
-    }),
-    experimental_throttle: 50,
-    onFinish: () => {}
-  });
+  const { messages, sendMessage, status } = useChat({ chat: currentBranch.chatInstance });
 
   useEffect(() => {
-    if (Object.keys(branches).length === 0) {
-      createBranch();
+    scrollToBottom();
+    console.log("> (useEffect for currentBranch): ")
+    console.log(">>> CURRENT BRANCH: ", currentBranch);
+
+    console.log(">>> fromBranchId: ", currentBranch.from?.branchId);
+    console.log(">>> fromMessage: ", currentBranch.from?.message);
+
+    // if (currentBranch.from) setFromMessage(currentBranch.from.message);
+    console.log("> (useEffect for fromMessage) FROM MESSAGE: ", fromMessage);
+  }, [currentBranch]);
+
+  useEffect(() => {
+    console.log("> (useEffect for fromMessage) FROM MESSAGE: ", fromMessage);
+    if (currentBranch.from) { 
+      setFromMessage(currentBranch.from.message); return;
     }
-  }, [branches, activeBranchId, getBranchMessage]);
+    setFromMessage(undefined);
+  }, [ currentBranch, fromMessage,]);
 
   useEffect(() => {
-    if (activeBranchId && messages.length > 0 && status === "ready") {
-      syncMessagesFromChat((activeBranchId as string), messages);
-    }
-  }, [status, messages, activeBranchId, syncMessagesFromChat]);
+    if (status !== "ready") return;
+    const newVBranch = syncMessagesFromChat(currentBranch.id, [...messages]);
+    console.log("> (chat ready) CURRENT BRANCH: ", newVBranch);
 
-  useEffect(() => {
-    console.log("> MESSAGES: ", messages);
-    console.log(`> BRANCH (${currentBranch?.id}) MESSAGES: `, currentBranch?.messages);
-  }, [ currentBranch, status, messages]);
+  }, [messages, status]);
 
   function handleSubmit() {
     if (prompt.trim()) {
@@ -67,7 +69,6 @@ export default function AIChat() {
   }
 
   const chatContainerRef = useRef<any>(null)
-  const [shouldAutoScroll] = useState(true)
 
   // Função para rolar suavemente
   function scrollToBottom() {
@@ -81,21 +82,19 @@ export default function AIChat() {
 
   // Rola condicionalmente quando novas mensagens chegam
   useEffect(() => {
-    if (shouldAutoScroll) {
-      scrollToBottom()
-    }
-  }, [messages, shouldAutoScroll])
+    scrollToBottom()
+  }, [messages])
 
-  function handleCreateBranch(fromBranchId: string, fromMessageId: string) {
-    createBranch(fromBranchId, fromMessageId);
+  function handleCreateBranch(fromBranchId: string, fromMessage: MessageNode) {
+    const newB = createBranch(fromBranchId, fromMessage);
+    switchBranch(newB.id);
   }
 
   const handleSwitchToOriginalBranch = () => {
-    if (!activeBranchId) return;
-    const currentBranch = branches[activeBranchId];
-    if (currentBranch?.fromBranchId) {
-      console.log("Switching to original branch:", currentBranch.fromBranchId);
-      switchBranch(currentBranch.fromBranchId);
+    if (currentBranch.from) {
+      console.log("Switching to original branch:", currentBranch.from.branchId);
+      switchBranch(currentBranch.from.branchId);
+      setFromMessage(undefined);
     }
   };
 
@@ -107,7 +106,7 @@ export default function AIChat() {
         className="w-full h-full overflow-y-scroll no-scrollbar pb-4 flex flex-col gap-4"
       >
         {fromMessage && (
-          <div className="flex flex-col gap-2 mb-4">
+          <div className="flex flex-col gap-2 mb-4 sticky top-0 bg-background pb-5">
             {/* Label indicativo */}
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <GitBranch className="w-3 h-3" />
@@ -152,7 +151,9 @@ export default function AIChat() {
                     )}
                     onClick={() => {
                       console.log("> switching to new branch...")
-                      handleCreateBranch(activeBranchId as string, message.id)
+                      handleCreateBranch(currentBranch.id, { 
+                        id: message.id, role: message.role, content: text
+                      });
                     }}
                   >
                     <GitBranchPlus size={15}/>

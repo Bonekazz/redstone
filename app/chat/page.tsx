@@ -1,21 +1,43 @@
 "use client";
 
 import AIChat from "@/components/chat/AIChat";
-import { useChatStore } from "@/stores/useChatStore";
-import { useEffect, useState } from "react";
+import { 
+  SidebarProvider,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+} from "@/components/ui/sidebar"
+import { ChatBranch, useChatStore } from "@/stores/useChatStore";
 
 export default function Page() {
-  const { activeBranchId } = useChatStore();
-
-  const [componentKey, setComponentKey] = useState(activeBranchId);
-  
-  useEffect(() => {
-    setComponentKey(activeBranchId);
-  }, [activeBranchId]);
+  const { getBranchesList, switchBranch } = useChatStore();
+  const branches = getBranchesList();
 
   return (
     <div className="w-screen h-screen flex flex-col items-center">
-      <AIChat key={componentKey}/>
+      <SidebarProvider>
+        <Sidebar>
+          <SidebarContent>
+            <SidebarMenu>
+              {branches.map((branch: ChatBranch) => (
+                <SidebarMenuItem key={branch.id}>
+                  <SidebarMenuButton
+                    onClick={() => switchBranch(branch.id)}
+                  >
+                    <span>{branch.id}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarContent>
+        </Sidebar>
+        <AIChat/>
+      </SidebarProvider>
     </div>
    )
 }

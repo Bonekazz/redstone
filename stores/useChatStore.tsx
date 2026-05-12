@@ -1,5 +1,15 @@
-import { generateId } from "ai";
+import { Chat, UIMessage } from "@ai-sdk/react";
+import { DefaultChatTransport, generateId } from "ai";
 import { create } from "zustand";
+
+function createChatInstance(branchId: string): Chat<UIMessage> {
+  return new Chat<UIMessage>({
+    id: branchId,
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    })
+  });
+}
 
 export interface MessageNode {
   id: string,
@@ -9,10 +19,13 @@ export interface MessageNode {
 
 export interface ChatBranch {
   id: string, 
-  name: string | null,
-  fromBranchId?: string,  // null (if its the root branch)
-  fromMessageId?: string, // null (if its the root branch)
-  messages?: MessageNode[],
+  name?: string,
+  from?: {                  // initial branch if not provided
+    branchId: string,
+    message: MessageNode,
+  }
+  messages: MessageNode[] | [],
+  chatInstance: Chat<UIMessage>,
 }
 
 export interface ChatStore {
@@ -20,40 +33,48 @@ export interface ChatStore {
   activeBranchId: string | null,
 
   // Actions
-  createBranch: (fromBranchId?: string, fromMessageId?: string) => void,
-  syncMessagesFromChat: (branchId: string, chatMessages: any[]) => void;
-  getBranchMessage: (branchId: string, messageId: string) => void;
-  switchBranch: (branchId: string) => void;
+  createBranch: (fromBranchId?: string, fromMessage?: MessageNode) => ChatBranch,
+  syncMessagesFromChat: (branchId: string, chatMessages: any[]) => ChatBranch | undefined,
+  getBranchMessage: (branchId: string, messageId: string) => void,
+  switchBranch: (branchId: string) => void,
+
+  getActiveBranch: () => ChatBranch,
+
+  getFromMessage: (branchId: string) => MessageNode | undefined;
+
+  getBranchesList: () => ChatBranch[];
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   branches: {},
   activeBranchId: null,
 
-  createBranch: (fromBranchId?: string, fromMessageId?: string) => { 
-    const bId = generateId();
-    const newId = "popa" + bId;
+  createBranch: (fromBranchId?: string, fromMessage?: MessageNode): ChatBranch => { 
+    const newId = generateId();
+
     set({
       branches: {
         ...get().branches,
         [newId]: {
           id: newId,
-          name: "fodasi",
-          fromBranchId,
-          fromMessageId,
+          chatInstance: createChatInstance(newId),
+          messages: [],
+          ...(fromBranchId && fromMessage && { from: {
+            branchId: fromBranchId,
+            message: fromMessage 
+          }})
         }
       },
-      activeBranchId: newId
-    })
+    });
+
+    return get().branches[newId];
   },
 
-  syncMessagesFromChat: (branchId: string, chatMessages: any[]) => {
+  syncMessagesFromChat: (branchId: string, chatMessages: any[]): ChatBranch | undefined => {
     const branches = get().branches;
     const currentBranch = branches[branchId];
-    if (!currentBranch) { console.error("[!] Branch id not found: ", branchId); return;}
+    if (!currentBranch) { console.error("[!] Branch id not found: ", branchId); return currentBranch;}
 
-    if (!currentBranch.messages) currentBranch.messages = [];
-    
     const messages = chatMessages.map((m: any) => ({
       id: m.id,
       role: m.role,
@@ -70,6 +91,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       }
     })
 
+    return get().branches[currentBranch.id];
+
   },
 
   getBranchMessage: (branchId: string, messageId: string) => {
@@ -79,6 +102,30 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   },
 
   switchBranch: (branchId: string) => {
-    set({ activeBranchId: branchId});
+    set({ activeBranchId: branchId });
+  },
+
+  getActiveBranch: () => {
+    const activeBranchId = get().activeBranchId;
+    if (!activeBranchId) {
+      const newB = get().createBranch();
+      console.log("(chat store) No active branch detected. Creating and setting new active branch: ", newB);
+      set({ activeBranchId: newB.id });
+      return newB;
+    };
+    return get().branches[activeBranchId];
+  },
+
+  getFromMessage: (branchId: string): MessageNode | undefined => {
+    const branch = get().branches[branchId];
+    console.log("> (chat store) BRANCHES: ", get().branches);
+    if (!branch) { console.log("[!] Branch id not found: ", branchId); return;} 
+    if (!branch.from) return;
+
+    return branch.from.message;
+  },
+
+  getBranchesList: () => {
+    return Object.values(get().branches);
   }
 }))
