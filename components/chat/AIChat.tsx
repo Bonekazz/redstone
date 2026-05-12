@@ -27,14 +27,6 @@ export default function AIChat() {
 
   useEffect(() => {
     scrollToBottom();
-    console.log("> (useEffect for currentBranch): ")
-    console.log(">>> CURRENT BRANCH: ", currentBranch);
-
-    console.log(">>> fromBranchId: ", currentBranch.from?.branchId);
-    console.log(">>> fromMessage: ", currentBranch.from?.message);
-
-    // if (currentBranch.from) setFromMessage(currentBranch.from.message);
-    console.log("> (useEffect for fromMessage) FROM MESSAGE: ", fromMessage);
   }, [currentBranch]);
 
   useEffect(() => {

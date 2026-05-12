@@ -5,9 +5,6 @@ import {
   SidebarProvider,
   Sidebar,
   SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -16,7 +13,7 @@ import { ChatBranch, useChatStore } from "@/stores/useChatStore";
 
 export default function Page() {
   const { getBranchesList, switchBranch } = useChatStore();
-  const branches = getBranchesList();
+  const branches = getBranchesList() || [];
 
   return (
     <div className="w-screen h-screen flex flex-col items-center">
@@ -24,8 +21,8 @@ export default function Page() {
         <Sidebar>
           <SidebarContent>
             <SidebarMenu>
-              {branches.map((branch: ChatBranch) => (
-                <SidebarMenuItem key={branch.id}>
+              {branches.map((branch: ChatBranch, i: number) => (
+                <SidebarMenuItem key={i}>
                   <SidebarMenuButton
                     onClick={() => switchBranch(branch.id)}
                   >
