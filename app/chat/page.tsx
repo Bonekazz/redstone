@@ -1,6 +1,7 @@
 "use client";
 
 import AIChat from "@/components/chat/AIChat";
+import { AnimatePresence, motion } from "motion/react"
 import { 
   SidebarProvider,
   Sidebar,
@@ -17,24 +18,22 @@ export default function Page() {
 
   return (
     <div className="w-screen h-screen flex flex-col items-center">
-      <SidebarProvider>
-        <Sidebar>
-          <SidebarContent>
-            <SidebarMenu>
-              {branches.map((branch: ChatBranch, i: number) => (
-                <SidebarMenuItem key={i}>
-                  <SidebarMenuButton
-                    onClick={() => switchBranch(branch.id)}
-                  >
-                    <span>{branch.id}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarContent>
-        </Sidebar>
-        <AIChat/>
-      </SidebarProvider>
+      <Sidebar>
+        <SidebarContent>
+          <SidebarMenu>
+            {branches.length > 0 && branches.map((branch: ChatBranch, i: number) => (
+              <SidebarMenuItem key={i}>
+                <SidebarMenuButton
+                  onClick={() => switchBranch(branch.id)}
+                >
+                  <span>{branch.id}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarContent>
+      </Sidebar>
+      <AIChat/>
     </div>
    )
 }

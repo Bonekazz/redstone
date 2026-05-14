@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { ChatProvider } from "@/providers/ChatProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -39,9 +40,11 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <TooltipProvider>
-              {children}
-            </TooltipProvider>
+            <SidebarProvider>
+              <TooltipProvider>
+                {children}
+              </TooltipProvider>
+            </SidebarProvider>
           </ThemeProvider>
         </ChatProvider>
       </body>
