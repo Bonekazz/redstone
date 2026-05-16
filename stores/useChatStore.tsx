@@ -1,13 +1,13 @@
 import { Chat, UIMessage } from "@ai-sdk/react";
-import { DefaultChatTransport, generateId } from "ai";
+import { ChatInit, DefaultChatTransport, generateId, UIDataTypes, UITools } from "ai";
 import { create } from "zustand";
 
-function createChatInstance(branchId: string): Chat<UIMessage> {
-  return new Chat<UIMessage>({
+function createChatInstance(branchId: string): Chat<UIMessage<unknown, UIDataTypes, UITools>> {
+  return new Chat<UIMessage<unknown, UIDataTypes, UITools>>({
     id: branchId,
     transport: new DefaultChatTransport({
       api: '/api/chat',
-    })
+    }),
   });
 }
 
@@ -43,6 +43,8 @@ export interface ChatStore {
   getFromMessage: (branchId: string) => MessageNode | undefined;
 
   getBranchesList: () => ChatBranch[];
+
+  getChatHistoryFromMessage: (branchId: string, fromMessageId: string) => MessageNode[] | [];
 }
 
 export const useChatStore = create<ChatStore>((set, get) => ({
@@ -127,5 +129,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   getBranchesList: () => {
     return Object.values(get().branches);
+  },
+
+
+  getChatHistoryFromMessage: (branchId: string, fromMessageId: string): MessageNode[] | [] => {
+    const branch = get().branches[branchId];
+    if (branch.messages.length === 0) return [];
+    const messages = branch.messages;
+    
+    const targetIndex = messages.findIndex(m => m.id === fromMessageId);
+    if (targetIndex === -1) return [];
+    //console.log("> HISTORY: ", messages.slice(0, targetIndex + 1));
+
+    return messages.slice(0, targetIndex + 1);
   }
 }))

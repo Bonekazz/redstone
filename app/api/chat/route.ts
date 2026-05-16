@@ -2,7 +2,10 @@ import { convertToModelMessages, streamText } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
 
 export async function POST(req: Request) {
-  const { messages, nodeId } = await req.json();
+  const { messages, context } = await req.json();
+
+  console.log("> CONTEXT PROVIDED: ", context);
+
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return Response.json(
@@ -17,15 +20,20 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: groq('llama-3.3-70b-versatile'),
-    messages: await convertToModelMessages(messages),
-    onFinish({text}) {
+    ...(context && { system: `The user provided these messages data as context: ${JSON.stringify(context)}`}),
+    prompt: await convertToModelMessages(messages),
+    onFinish({text }) {
       console.log(text);
     },
   });
 
+  const usage = await result.usage;
+
   return result.toUIMessageStreamResponse({
-    messageMetadata: ({ part }) => {
-      if (part.type === "start") return { nodeId }
+    messageMetadata: () => {
+      return {
+        usage
+      }
     }
   })
 }

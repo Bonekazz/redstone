@@ -18,27 +18,40 @@ export default function AIChat() {
   const { 
     createBranch,
     syncMessagesFromChat, switchBranch,
-    getActiveBranch
+    getActiveBranch, getChatHistoryFromMessage
   } = useChatStore();
 
   const currentBranch = getActiveBranch();
   const[fromMessage, setFromMessage] = useState<MessageNode|undefined>();
 
-  const { messages, sendMessage, status } = useChat({ chat: currentBranch.chatInstance });
+  const { messages, sendMessage, status } = useChat({
+    chat: currentBranch.chatInstance, 
+    experimental_throttle: 50
+  });
+
+  const chatHistoryRef = useRef<any>(null);
 
   useEffect(() => {
     scrollToBottom();
   }, [currentBranch]);
 
   useEffect(() => {
+    chatHistoryRef.current = null;
+  }, [currentBranch.id]);
+
+  useEffect(() => {
     console.log("> (useEffect for fromMessage) FROM MESSAGE: ", fromMessage);
-    if (currentBranch.from) { 
-      setFromMessage(currentBranch.from.message); return;
+    if (!currentBranch.from) { 
+      setFromMessage(undefined); return;
     }
-    setFromMessage(undefined);
+    setFromMessage(currentBranch.from.message);
+    if (chatHistoryRef.current) return;
+
+    chatHistoryRef.current = getChatHistoryFromMessage(currentBranch.from.branchId, currentBranch.from.message.id);
   }, [ currentBranch, fromMessage,]);
 
   useEffect(() => {
+    console.log("> MESSAGES: ", messages);
     if (status !== "ready") return;
     const newVBranch = syncMessagesFromChat(currentBranch.id, [...messages]);
     console.log("> (chat ready) CURRENT BRANCH: ", newVBranch);
@@ -47,7 +60,15 @@ export default function AIChat() {
 
   function handleSubmit() {
     if (prompt.trim()) {
-      sendMessage({ text: prompt });
+      console.log("> HISTORY: ", chatHistoryRef.current);
+      sendMessage(
+        { text: prompt },
+        { 
+          body: {
+            context: chatHistoryRef.current || []
+          }
+        }
+      );
       scrollToBottom()
       setPrompt("");
     }
