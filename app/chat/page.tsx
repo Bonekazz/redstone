@@ -11,9 +11,10 @@ import {
   SidebarMenuButton,
 } from "@/components/ui/sidebar"
 import { ChatBranch, useChatStore } from "@/stores/useChatStore";
+import { cn } from "@/lib/utils";
 
 export default function Page() {
-  const { getBranchesList, switchBranch } = useChatStore();
+  const { getBranchesList, switchBranch, activeBranchId } = useChatStore();
   const branches = getBranchesList() || [];
 
   return (
@@ -26,7 +27,14 @@ export default function Page() {
                 <SidebarMenuButton
                   onClick={() => switchBranch(branch.id)}
                 >
-                  <span>{branch.id}</span>
+                  <span
+                    className={cn(
+                      "border",
+                      branch.id === activeBranchId ? "border-amber-300" : "border-transparent"
+                    )}
+                  >
+                    {branch.id}
+                  </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
