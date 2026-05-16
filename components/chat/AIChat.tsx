@@ -138,7 +138,7 @@ export default function AIChat() {
                 onClick={handleSwitchToOriginalBranch}
                 className="relative group cursor-pointer transition-all hover:opacity-80"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-linear-to-r from-primary/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="relative bg-muted/50 rounded-lg p-3 border border-border">
                   <p className="text-sm text-muted-foreground line-clamp-2">

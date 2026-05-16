@@ -9,20 +9,26 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import { ChatBranch, useChatStore } from "@/stores/useChatStore";
 import { cn } from "@/lib/utils";
+import { CornerDownRight } from "lucide-react";
 
 export default function Page() {
   const { getBranchesList, switchBranch, activeBranchId } = useChatStore();
   const branches = getBranchesList() || [];
 
+  const rootBranches = branches.filter((b: ChatBranch) => b.from === undefined);
+  const subBranches = branches.filter((b: ChatBranch) => b.from !== undefined);
+
   return (
     <div className="w-screen h-screen flex flex-col items-center">
-      <Sidebar>
-        <SidebarContent>
+      <Sidebar className="border-none">
+        <SidebarContent className="bg-card">
           <SidebarMenu>
-            {branches.length > 0 && branches.map((branch: ChatBranch, i: number) => (
+            {rootBranches.length > 0 && rootBranches.map((branch: ChatBranch, i: number) => (
               <SidebarMenuItem key={i}>
                 <SidebarMenuButton
                   onClick={() => switchBranch(branch.id)}
@@ -36,6 +42,30 @@ export default function Page() {
                     {branch.id}
                   </span>
                 </SidebarMenuButton>
+
+                {/** SIDER BAR MENU SUB HERE */}
+                { subBranches.length && (
+                  <SidebarMenuSub className="border-l-0">
+                  { subBranches.map((b: ChatBranch, i: number) => (
+                    <SidebarMenuSubItem key={i}>
+                      <SidebarMenuButton
+                        onClick={() => switchBranch(b.id)}
+                      >
+                        <span
+                          className={cn(
+                            "border flex gap-2",
+                            b.id === activeBranchId ? "border-amber-300" : "border-transparent"
+                          )}
+                        >
+                          <CornerDownRight />
+                          {b.id}
+                        </span>
+                      </SidebarMenuButton>
+                    </SidebarMenuSubItem>
+                  ))}
+                  </SidebarMenuSub>
+                )}
+
               </SidebarMenuItem>
             ))}
           </SidebarMenu>
