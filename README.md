@@ -33,7 +33,7 @@ Obtenha a chave em [console.groq.com](https://console.groq.com/). Sem ela, o cha
 npm run dev
 ```
 
-5. Abra [http://localhost:3000](http://localhost:3000) no navegador.
+5. Abra [http://localhost:3000/chat](http://localhost:3000/chat) no navegador.
 
 ## Scripts
 
