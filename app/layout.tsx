@@ -6,6 +6,8 @@ import { ChatProvider } from "@/providers/ChatProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
+import "streamdown/styles.css";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],

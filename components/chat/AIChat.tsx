@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { UserMessage } from "@/components/chat/UserMessage";
 import { MessageNode, useChatStore } from "@/stores/useChatStore";
 import { AnimatePresence, motion } from "framer-motion";
+import { StreamedMessage } from "./StreamedMessage";
 
 export default function AIChat() {
 
@@ -118,7 +119,7 @@ export default function AIChat() {
         initial={{ x: 300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: -300, opacity: 0 }}
-        className="w-3xl h-full flex flex-col items-center px-8 py-4"
+        className="w-4xl h-full flex flex-col items-center px-8 py-4"
       >
         {/** CHAT CONTAINER */}
         <div 
@@ -126,7 +127,7 @@ export default function AIChat() {
           className="w-full h-full overflow-y-scroll no-scrollbar pb-4 flex flex-col gap-4"
         >
           {fromMessage && (
-            <div className="flex flex-col gap-2 mb-4 sticky top-0 bg-background pb-5">
+            <div className="flex flex-col gap-2 mb-4 sticky top-0 bg-background pb-5 z-1000">
               {/* Label indicativo */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <GitBranch className="w-3 h-3" />
@@ -141,9 +142,9 @@ export default function AIChat() {
                 <div className="absolute inset-0 bg-linear-to-r from-primary/5 to-transparent rounded-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                 
                 <div className="relative bg-muted/50 rounded-lg p-3 border border-border">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {fromMessage.content}
-                  </p>
+                  <div className="text-sm text-muted-foreground line-clamp-2">
+                    <StreamedMessage {...{text: fromMessage.content, status}} />
+                  </div>
                   <p className="text-xs text-primary mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     Clique para voltar à conversa original →
                   </p>
@@ -161,7 +162,9 @@ export default function AIChat() {
                 {message.role === "user" && (<UserMessage message={text}/>)}
                 {message.role === "assistant" && (
                   <div className="flex flex-col">
-                    <p className="bg-muted text-card-foreground px-4 py-3 rounded-lg">{text}</p>
+                    <div className="text-card-foreground px-4 py-3 rounded-lg">
+                      <StreamedMessage {...{text, status}} />
+                    </div>
                     <Button 
                       variant={"ghost"}
                       size="sm"
