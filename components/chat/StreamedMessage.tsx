@@ -16,7 +16,7 @@ export function StreamedMessage({ text, status }: Props) {
       plugins={{ 
         code, mermaid, math, cjk
       }}
-      animated={{ animation: "blurIn", duration: 250 }}
+      animated={{ animation: "blurIn", duration: 250, stagger: 0 }}
       isAnimating={status === "streaming"}
       mode="streaming"
     >
