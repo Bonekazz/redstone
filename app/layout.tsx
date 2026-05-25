@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { ChatProvider } from "@/providers/ChatProvider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider } from "@/components/ui/sidebar";
 
@@ -35,20 +34,18 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="dark min-h-full flex flex-col bg-background">
-        <ChatProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark"
-            enableSystem={false}
-            disableTransitionOnChange
-          >
-            <SidebarProvider>
-              <TooltipProvider>
-                {children}
-              </TooltipProvider>
-            </SidebarProvider>
-          </ThemeProvider>
-        </ChatProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <SidebarProvider>
+            <TooltipProvider>
+              {children}
+            </TooltipProvider>
+          </SidebarProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

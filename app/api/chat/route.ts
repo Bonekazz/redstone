@@ -1,28 +1,38 @@
-import { convertToModelMessages, streamText } from 'ai';
-import { createGroq } from '@ai-sdk/groq';
+import { z } from "zod";
+import { convertToModelMessages, streamText } from "ai";
+import { createGroq } from "@ai-sdk/groq";
+
+const GroqModelSchema = z.enum(["llama-3.3-70b-versatile"]);
+
+const requestSchema = z.object({
+  modelProvider: z.literal("groq"),
+  messages: z.array(z.any()),
+  context: z.any().optional(),
+  apiKey: z.string().min(1),
+  model: GroqModelSchema,
+});
 
 export async function POST(req: Request) {
-  const { messages, context } = await req.json();
+  const body = await req.json().catch(() => ({}));
+  const parseResult = requestSchema.safeParse(body);
 
-  console.log("> CONTEXT PROVIDED: ", context);
-
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) {
+  if (!parseResult.success) {
     return Response.json(
-      { error: "Defina GROQ_API_KEY no servidor ou userApiKey no cliente." },
-      { status: 401 }
+      { error: "Dados de requisição inválidos.", issues: parseResult.error.format() },
+      { status: 400 }
     );
   }
 
-  const groq = createGroq({
-    apiKey,
-  });
+  const { messages, context, apiKey, model } = parseResult.data;
+
+  const groq = createGroq({ apiKey });
+  const selectedModel = groq(model);
 
   const result = streamText({
-    model: groq('llama-3.3-70b-versatile'),
-    ...(context && { system: `The user provided these messages data as context: ${JSON.stringify(context)}`}),
+    model: selectedModel,
+    ...(context && { system: `The user provided these messages data as context: ${JSON.stringify(context)}` }),
     prompt: await convertToModelMessages(messages),
-    onFinish({text }) {
+    onFinish({ text }) {
       console.log(text);
     },
   });

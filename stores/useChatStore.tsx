@@ -7,6 +7,11 @@ function createChatInstance(branchId: string): Chat<UIMessage<unknown, UIDataTyp
     id: branchId,
     transport: new DefaultChatTransport({
       api: '/api/chat',
+      body: () => ({
+        modelProvider: "groq",
+        model: localStorage.getItem("modelProviderModel") ?? "llama-3.3-70b-versatile",
+        apiKey: localStorage.getItem("modelProviderApiKey") ?? "",
+      }),
     }),
   });
 }

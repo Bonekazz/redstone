@@ -4,6 +4,7 @@ import AIChat from "@/components/chat/AIChat";
 import { 
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
@@ -15,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { CornerDownRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ModelProviderControl } from "@/components/ModelProviderControl";
 
 export default function Page() {
   const { getBranchesList, switchBranch, activeBranchId, createBranch } = useChatStore();
@@ -43,6 +45,9 @@ export default function Page() {
             }}/>
           ))}
         </SidebarContent>
+        <SidebarFooter>
+          <ModelProviderControl />
+        </SidebarFooter>
       </Sidebar>
       <AIChat/>
     </div>
