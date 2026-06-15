@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { GitBranch, GitBranchPlus, Send } from "lucide-react";
 
+import { RefreshCcwIcon } from "lucide-react"
+
 import { useChat } from "@ai-sdk/react";
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
@@ -12,7 +14,26 @@ import { MessageNode, useChatStore } from "@/stores/useChatStore";
 import { AnimatePresence, motion } from "framer-motion";
 import { StreamedMessage } from "./StreamedMessage";
 
+
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+
 export default function AIChat() {
+
+  const [apiKey, setApiKey ] = useState<null | string>(null);
+
+  useEffect(() => {
+    const k = localStorage.getItem("modelProviderApiKey");
+    if (!k) return;
+
+    setApiKey(k);
+  }, []);
 
   const [prompt, setPrompt] = useState("");
 
@@ -112,6 +133,25 @@ export default function AIChat() {
       setFromMessage(undefined);
     }
   };
+
+  if (!apiKey) {
+    return (
+      <Empty className="h-full bg-muted/30">
+        <EmptyHeader>
+          <EmptyTitle>No Api key</EmptyTitle>
+          <EmptyDescription className="max-w-xs text-pretty">
+            Looks like you haven't set an api key yet.
+          </EmptyDescription>
+        </EmptyHeader>
+        <EmptyContent>
+          <Button variant="outline">
+            <RefreshCcwIcon />
+            Set Api Key
+          </Button>
+        </EmptyContent>
+      </Empty>
+    )
+  }
 
   return (
     <AnimatePresence mode="popLayout">
