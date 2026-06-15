@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -28,7 +28,10 @@ function getDefaultModel() {
   return MODEL_OPTIONS[0]?.value ?? ""
 }
 
-export function ModelProviderControl() {
+interface Props {
+  triggerComponent?: React.ReactElement
+}
+export function ModelProviderControl({ triggerComponent: TriggerComponent }: Props) {
   const [model, setModel] = useState<string>(getDefaultModel())
   const [apiKey, setApiKey] = useState<string>("")
   const [loaded, setLoaded] = useState(false)
@@ -53,14 +56,17 @@ export function ModelProviderControl() {
 
   return (
     <Dialog>
-      <DialogTrigger
-        render={
-          <Button variant="outline" className="w-full justify-between" aria-label="Configurar provedor de IA">
-            <span>IA Provider</span>
-            <Settings className="size-4" />
-          </Button>
-        }
-      />
+      { !TriggerComponent ? (
+        <DialogTrigger
+          render={
+            <Button variant="outline" className="w-full justify-between" aria-label="Configurar provedor de IA">
+              <span>IA Provider</span>
+              <Settings className="size-4" />
+            </Button>
+          }
+        />
+      ) : React.cloneElement(TriggerComponent)
+      }
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Configurar Groq</DialogTitle>
