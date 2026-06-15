@@ -11,6 +11,7 @@ function createChatInstance(branchId: string): Chat<UIMessage<unknown, UIDataTyp
         modelProvider: "groq",
         model: localStorage.getItem("modelProviderModel") ?? "llama-3.3-70b-versatile",
         apiKey: localStorage.getItem("modelProviderApiKey") ?? "",
+        a: localStorage.getItem("")
       }),
     }),
   });
