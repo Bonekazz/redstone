@@ -20,9 +20,10 @@ import {
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
-  EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
+import { ModelProviderControl } from "../ModelProviderControl";
+import { DialogTrigger } from "../ui/dialog";
 
 export default function AIChat() {
 
@@ -144,10 +145,15 @@ export default function AIChat() {
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button variant="outline">
-            <RefreshCcwIcon />
-            Set Api Key
-          </Button>
+          <ModelProviderControl triggerComponent={(
+            <DialogTrigger render={(
+                <Button variant="outline">
+                  <RefreshCcwIcon />
+                  Set Api Key
+                </Button>
+              )}>
+            </DialogTrigger>
+          )}/>
         </EmptyContent>
       </Empty>
     )
