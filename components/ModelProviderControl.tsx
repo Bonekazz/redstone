@@ -21,15 +21,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { aiFormSchema, AIFormValues } from "@/lib/providers/schema"
 import { AI_PROVIDERS } from "@/lib/providers/providers"
 
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-
 const STORAGE_MODEL_KEY = "modelProviderModel"
 const STORAGE_API_KEY = "modelProviderApiKey"
 
@@ -39,19 +30,21 @@ interface Props {
 export function ModelProviderControl({ triggerComponent: TriggerComponent }: Props) {
   const [loaded, setLoaded] = useState(false)
   const [open, setOpen] = useState(false);
+  const [providers, setProviders] = useState(AI_PROVIDERS);
 
-  const { register, control, handleSubmit, reset, watch } = useForm<AIFormValues>({
+  const { register, control, handleSubmit, reset, watch, formState } = useForm<AIFormValues>({
     resolver: zodResolver(aiFormSchema),
     defaultValues: {
       provider: 'groq',
       model: "llama-3.3-70b-versatile",
       apiKey: '',
       baseUrl: undefined,
-    },
+    } 
   })
 
   const selectedModel = watch("model");
   const selectedProvider = watch("provider");
+  const selectedBaseUrl = watch("baseUrl");
 
   useEffect(() => {
     const savedModel = localStorage.getItem(STORAGE_MODEL_KEY)
@@ -85,8 +78,7 @@ export function ModelProviderControl({ triggerComponent: TriggerComponent }: Pro
             </Button>
           }
         />
-      ) : React.cloneElement(TriggerComponent)
-      }
+      ) : React.cloneElement(TriggerComponent)}
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Configure Your AI</DialogTitle>
@@ -109,9 +101,9 @@ export function ModelProviderControl({ triggerComponent: TriggerComponent }: Pro
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {Object.entries(AI_PROVIDERS).map(([key, config]) => (
+                        {Object.entries(providers).map(([key, config]) => (
                           <SelectItem key={key} value={key}>
-                            {config.name}
+                            {key}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -119,62 +111,40 @@ export function ModelProviderControl({ triggerComponent: TriggerComponent }: Pro
                   </Select>
                 )}
               />
-              <FieldDescription>
-                Escolha o modelo Groq que será usado.
-              </FieldDescription>
             </Field>
 
-            { selectedProvider && (
+            {selectedProvider === "custom" && (
               <Field>
-                <FieldLabel>Model</FieldLabel>
-                <Controller 
-                  {...{control, name: "model" }}
-                  render={({ field }) => (
-                    <Combobox 
-                      items={AI_PROVIDERS[selectedProvider].models}
-                      value={field.value || selectedModel}
-                      onValueChange={(val) => field.onChange(val)}
-                    >
-                      <ComboboxInput placeholder="Select your model"/>
-                      <ComboboxContent>
-                        <ComboboxList>
-                          {(item) => (
-                            <ComboboxItem key={item} value={item}>{item}</ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  )}
-                />
-              </Field>
-            )}
-
-            { (selectedProvider && selectedModel) && (
-              <Field>
-                <FieldLabel>Chave de API</FieldLabel>
+                <FieldLabel>Base Url</FieldLabel>
                 <Input
                   type="text"
-                  placeholder="Digite sua chave de API"
-                  {...register('apiKey')}
+                  placeholder={providers["custom"].placeholderUrl}
+                  {...register("baseUrl")}
                 />
-                <FieldDescription>
-                  A chave será armazenada apenas no seu navegador.
-                </FieldDescription>
               </Field>
             )}
+
+            {
+              (selectedModel || (selectedModel && (selectedProvider === "custom" && selectedBaseUrl)) && (
+                <Field>
+                  <FieldLabel>Chave de API</FieldLabel>
+                  <Input
+                    type="text"
+                    placeholder="Digite sua chave de API"
+                    {...register('apiKey')}
+                  />
+                  <FieldDescription>
+                    A chave será armazenada apenas no seu navegador.
+                  </FieldDescription>
+                </Field>
+              ))
+            }
           </FieldGroup>
 
-          {loaded && (
-            <div className="mt-4 rounded-md border border-border bg-muted p-3 text-sm text-muted-foreground">
-              Provedor atual: <span className="font-semibold text-foreground">{selectedProvider}</span>
-              <br />
-              Modelo atual: <span className="font-semibold text-foreground">{selectedModel}</span>
-            </div>
-          )}
-
-          <DialogFooter className="border-none">
+          <DialogFooter className="border-none mt-5">
             <DialogClose render={<Button variant="outline">Cancelar</Button>} />
-            <Button type="submit">Salvar</Button>
+            <DialogClose render={<Button type="submit">Salvar</Button>} />
+            
           </DialogFooter>
         </form>
       </DialogContent>
